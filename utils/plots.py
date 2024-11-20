@@ -62,7 +62,7 @@ class Annotator:
                 print(f'Downloading {url} to {font}...')
                 torch.hub.download_url_to_file(url, font)
                 self.font = ImageFont.truetype(font, size=f)
-            self.fh = self.font.getsize('a')[1] - 3  # font height
+            self.fh = self.font.getbbox('a')[3] - self.font.getbbox('a')[1] - 3  # font height
         else:  # use cv2
             self.im = im
         s = sum(im.shape) / 2  # mean shape
