@@ -222,4 +222,3 @@ class ComputeLoss:
           tcls.append(c)  # class
 
       return tcls, tbox, indices, anch
-

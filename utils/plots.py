@@ -92,9 +92,13 @@ class Annotator:
         self.draw.rectangle(xy, fill, outline, width)
 
     def text(self, xy, text, txt_color=(255, 255, 255)):
-        # Add text to image (PIL-only)
-        w, h = self.font.getsize(text)  # text width, height
-        self.draw.text((xy[0], xy[1] - h + 1), text, fill=txt_color, font=self.font)
+        bbox = self.font.getbbox(text)  # bounding box
+        w = bbox[2] - bbox[0]  # text width
+        h = bbox[3] - bbox[1]  # text height
+        x, y = xy
+        self.draw.rectangle([x, y, x + w, y + h], fill=(0, 0, 0))  # text background
+        self.draw.text(xy, text, fill=txt_color, font=self.font)  # text
+
 
     def result(self):
         # Return annotated image as array
