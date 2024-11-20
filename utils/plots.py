@@ -47,7 +47,8 @@ colors = Colors()  # create instance for 'from utils.plots import colors'
 
 class Annotator:
     # YOLOv5 Annotator for train/val mosaics and jpgs and detect/hub inference annotations
-    def __init__(self, im, line_width=None, font_size=None, font='Arial.ttf', pil=True):
+    def __init__(self, im, line_width=2, font_size=None, font='Arial.ttf', pil=True):
+        self.line_width=line_width
         assert im.data.contiguous, 'Image not contiguous. Apply np.ascontiguousarray(im) to Annotator() input images.'
         self.pil = pil
         if self.pil:  # use PIL
@@ -68,24 +69,20 @@ class Annotator:
         s = sum(im.shape) / 2  # mean shape
         self.lw = line_width or max(round(s * 0.003), 2)  # line width
 
-    def box_label(self, box, label='', color=(128, 128, 128), txt_color=(255, 255, 255)):
-        # Add one xyxy box to image with label
-        if self.pil or not is_ascii(label):
-            self.draw.rectangle(box, width=self.lw, outline=color)  # box
-            if label:
-                w = self.font.getsize(label)[0]  # text width
-                self.draw.rectangle([box[0], box[1] - self.fh, box[0] + w + 1, box[1] + 1], fill=color)
-                self.draw.text((box[0], box[1]), label, fill=txt_color, font=self.font, anchor='ls')
-        else:  # cv2
-            c1, c2 = (int(box[0]), int(box[1])), (int(box[2]), int(box[3]))
-            cv2.rectangle(self.im, c1, c2, color, thickness=self.lw, lineType=cv2.LINE_AA)
-            if label:
-                tf = max(self.lw - 1, 1)  # font thickness
-                w, h = cv2.getTextSize(label, 0, fontScale=self.lw / 3, thickness=tf)[0]
-                c2 = c1[0] + w, c1[1] - h - 3
-                cv2.rectangle(self.im, c1, c2, color, -1, cv2.LINE_AA)  # filled
-                cv2.putText(self.im, label, (c1[0], c1[1] - 2), 0, self.lw / 3, txt_color, thickness=tf,
-                            lineType=cv2.LINE_AA)
+    def box_label(self, box, label='', color=(255, 255, 255)):
+      # Draw rectangle with specified line width
+      self.draw.rectangle(box, outline=color, width=self.line_width)
+
+      # Add label
+      if label:
+          w = self.font.getbbox(label)[2] - self.font.getbbox(label)[0]  # text width
+          h = self.font.getbbox(label)[3] - self.font.getbbox(label)[1]  # text height
+          outside = box[1] - h >= 0  # label outside box
+          y = box[1] - h if outside else box[1]
+          self.draw.rectangle([box[0], y, box[0] + w, y + h], fill=color)
+          self.draw.text((box[0], y), label, fill=(0, 0, 0), font=self.font)
+
+
 
     def rectangle(self, xy, fill=None, outline=None, width=1):
         # Add rectangle to image (PIL-only)
